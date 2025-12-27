@@ -4,6 +4,8 @@ import { Button, Input, RadioGroup, Checkbox } from '../ui'
 const typeOptions = [
   { value: 'text', label: 'Text', description: 'String values' },
   { value: 'number', label: 'Number', description: 'Numeric values' },
+  { value: 'boolean', label: 'Boolean', description: 'True or false' },
+  { value: 'null', label: 'Null', description: 'Null value only' },
 ]
 
 export default function PropertyForm({ onSubmit, onCancel }) {
