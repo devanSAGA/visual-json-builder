@@ -1,8 +1,11 @@
+import AppLayout from './components/layout/AppLayout'
+import { SchemaEditorPane } from './components/schema-editor'
+
 function App() {
   return (
-    <div className="min-h-screen bg-green-500 flex items-center justify-center">
-      <h1 className="text-4xl font-bold text-white">Hello World</h1>
-    </div>
+    <AppLayout>
+      <SchemaEditorPane />
+    </AppLayout>
   )
 }
 
