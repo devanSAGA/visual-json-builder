@@ -12,6 +12,8 @@ const EDITOR_OPTIONS = {
   scrollBeyondLastLine: false,
   automaticLayout: true,
   tabSize: 2,
+  largeFileOptimizations: true,
+  folding: true,
 }
 
 const SchemaCodeEditor = forwardRef(function SchemaCodeEditor(props, ref) {
