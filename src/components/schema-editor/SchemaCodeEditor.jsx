@@ -5,6 +5,15 @@ import { generateJsonSchema } from '../../utils/schemaGenerator'
 import { parseJsonSchema } from '../../utils/schemaParser'
 import useDebounce from '../../hooks/useDebounce'
 
+const EDITOR_OPTIONS = {
+  minimap: { enabled: false },
+  fontSize: 14,
+  lineNumbers: 'on',
+  scrollBeyondLastLine: false,
+  automaticLayout: true,
+  tabSize: 2,
+}
+
 const SchemaCodeEditor = forwardRef(function SchemaCodeEditor(props, ref) {
   const { schema, setSchema } = useSchemaStore()
   const [editorValue, setEditorValue] = useState('')
@@ -75,14 +84,7 @@ const SchemaCodeEditor = forwardRef(function SchemaCodeEditor(props, ref) {
           language="json"
           value={editorValue}
           onChange={handleEditorChange}
-          options={{
-            minimap: { enabled: false },
-            fontSize: 14,
-            lineNumbers: 'on',
-            scrollBeyondLastLine: false,
-            automaticLayout: true,
-            tabSize: 2,
-          }}
+          options={EDITOR_OPTIONS}
         />
       </div>
     </div>

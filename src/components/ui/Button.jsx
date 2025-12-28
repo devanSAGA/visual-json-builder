@@ -2,12 +2,16 @@ const variants = {
   primary: 'bg-blue-600 text-white hover:bg-blue-700',
   secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300',
   outline: 'border border-gray-300 text-gray-700 hover:bg-gray-50',
+  ghost: 'text-gray-400 hover:text-gray-600 hover:bg-gray-100',
+  'ghost-danger': 'text-gray-400 hover:text-red-500 hover:bg-red-50',
+  'ghost-primary': 'text-gray-400 hover:text-blue-500 hover:bg-blue-50',
 }
 
 const sizes = {
   sm: 'px-3 py-1.5 text-sm',
   md: 'px-4 py-2 text-sm',
   lg: 'px-5 py-2.5 text-base',
+  icon: 'p-1.5',
 }
 
 export default function Button({
