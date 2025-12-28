@@ -1,15 +1,27 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useImperativeHandle, forwardRef } from 'react'
 import Editor from '@monaco-editor/react'
 import useSchemaStore from '../../store/useSchemaStore'
 import { generateJsonSchema } from '../../utils/schemaGenerator'
 import { parseJsonSchema } from '../../utils/schemaParser'
 import useDebounce from '../../hooks/useDebounce'
 
-export default function SchemaCodeEditor() {
+const SchemaCodeEditor = forwardRef(function SchemaCodeEditor(props, ref) {
   const { schema, setSchema } = useSchemaStore()
   const [editorValue, setEditorValue] = useState('')
   const [parseError, setParseError] = useState(null)
   const isInternalUpdate = useRef(false)
+
+  useImperativeHandle(ref, () => ({
+    prettify: () => {
+      try {
+        const parsed = JSON.parse(editorValue)
+        const formatted = JSON.stringify(parsed, null, 2)
+        setEditorValue(formatted)
+      } catch {
+        // If JSON is invalid, do nothing
+      }
+    }
+  }))
 
   // Generate JSON Schema from store
   const jsonSchema = generateJsonSchema(schema)
@@ -75,4 +87,6 @@ export default function SchemaCodeEditor() {
       </div>
     </div>
   )
-}
+})
+
+export default SchemaCodeEditor

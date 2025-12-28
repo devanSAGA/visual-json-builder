@@ -6,6 +6,7 @@ export default function ResizablePanes({
   rightPane,
   leftTitle,
   rightTitle,
+  rightActions,
   defaultLeftWidth = 50,
   minLeftWidth = 20,
   maxLeftWidth = 80,
@@ -86,9 +87,16 @@ export default function ResizablePanes({
       {/* Right Pane */}
       <div className="bg-white overflow-hidden flex-1">
         {rightTitle && (
-          <div className="h-10 px-4 flex items-center gap-2 border-b border-gray-200">
-            <Braces size={16} className="text-gray-500" />
-            <h2 className="text-sm font-medium text-gray-700">{rightTitle}</h2>
+          <div className="h-10 px-4 flex items-center justify-between border-b border-gray-200">
+            <div className="flex items-center gap-2">
+              <Braces size={16} className="text-gray-500" />
+              <h2 className="text-sm font-medium text-gray-700">{rightTitle}</h2>
+            </div>
+            {rightActions && (
+              <div className="flex items-center gap-1">
+                {rightActions}
+              </div>
+            )}
           </div>
         )}
         <div className={rightTitle ? "h-[calc(100%-2.5rem)]" : "h-full"}>
