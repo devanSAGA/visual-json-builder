@@ -16,14 +16,14 @@ export default function Checkbox({
         className="
           h-4 w-4
           rounded border-gray-300
-          text-blue-600
+          accent-blue-600
           focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
           cursor-pointer
         "
         {...props}
       />
       {label && (
-        <label htmlFor={id} className="ml-2 text-sm text-gray-700 cursor-pointer">
+        <label htmlFor={id} className="ml-2 text-sm text-gray-700 cursor-pointer select-none">
           {label}
         </label>
       )}

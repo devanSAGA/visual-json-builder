@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Pin, PinOff } from "lucide-react";
+import { X, Pin, PinOff, Play } from "lucide-react";
 import Editor from "@monaco-editor/react";
 import useSchemaStore from "../../store/useSchemaStore";
 
@@ -13,10 +13,13 @@ export default function ValidatorPanel({ onClose, isPinned, onTogglePin }) {
   };
 
   return (
-    <div className="h-full flex flex-col bg-white border-l border-gray-200">
+    <div className="h-full flex flex-col bg-white">
       {/* Header */}
-      <div className="h-10 px-4 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
-        <h2 className="text-sm font-medium text-gray-700">Validator</h2>
+      <div className="h-10 pl-4 pr-2 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <Play size={16} className="text-gray-500" />
+          <h2 className="text-sm font-medium text-gray-700">Validator</h2>
+        </div>
         <div className="flex items-center gap-1">
           <button
             onClick={onTogglePin}

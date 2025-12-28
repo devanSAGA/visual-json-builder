@@ -7,9 +7,7 @@ export default function AppLayout({ children }) {
         </h1>
       </header>
       <main className="flex-1 overflow-hidden p-3">
-        <div className="h-full bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-          {children}
-        </div>
+        {children}
       </main>
     </div>
   );

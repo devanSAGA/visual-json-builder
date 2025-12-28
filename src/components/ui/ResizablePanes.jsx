@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
+import { SquareChevronRight, Braces } from "lucide-react";
 
 export default function ResizablePanes({
   leftPane,
@@ -62,7 +63,8 @@ export default function ResizablePanes({
         style={{ width: `${leftWidth}%` }}
       >
         {leftTitle && (
-          <div className="h-10 px-4 flex items-center border-b border-gray-200">
+          <div className="h-10 px-4 flex items-center gap-2 border-b border-gray-200">
+            <SquareChevronRight size={16} className="text-gray-500" />
             <h2 className="text-sm font-medium text-gray-700">{leftTitle}</h2>
           </div>
         )}
@@ -84,7 +86,8 @@ export default function ResizablePanes({
       {/* Right Pane */}
       <div className="bg-white overflow-hidden flex-1">
         {rightTitle && (
-          <div className="h-10 px-4 flex items-center border-b border-gray-200">
+          <div className="h-10 px-4 flex items-center gap-2 border-b border-gray-200">
+            <Braces size={16} className="text-gray-500" />
             <h2 className="text-sm font-medium text-gray-700">{rightTitle}</h2>
           </div>
         )}
