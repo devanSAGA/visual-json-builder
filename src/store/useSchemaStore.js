@@ -5,14 +5,42 @@ const initialState = {
   schema: {
     title: '',
     description: '',
-    properties: [],
+    properties: [
+      {
+        id: 'default-1',
+        name: 'Name',
+        type: 'text',
+        description: '',
+        required: false,
+        validation: {
+          minLength: null,
+          maxLength: null,
+          pattern: null,
+          format: null,
+        },
+      },
+      {
+        id: 'default-2',
+        name: 'Phone',
+        type: 'number',
+        description: '',
+        required: false,
+        validation: {
+          minimum: null,
+          maximum: null,
+          exclusiveMinimum: null,
+          exclusiveMaximum: null,
+          multipleOf: null,
+        },
+      },
+    ],
   },
   // For input validator pane (later)
   jsonInput: '',
   validationErrors: [],
 }
 
-const useSchemaStore = create((set, get) => ({
+const useSchemaStore = create((set) => ({
   ...initialState,
 
   // Schema metadata actions

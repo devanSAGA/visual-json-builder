@@ -1,16 +1,59 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { X, Pin, PinOff, Play } from "lucide-react";
 import Editor from "@monaco-editor/react";
 import useSchemaStore from "../../store/useSchemaStore";
+import { generateJsonSchema } from "../../utils/schemaGenerator";
+import { validateJson } from "../../utils/jsonValidator";
+import useDebounce from "../../hooks/useDebounce";
 
 export default function ValidatorPanel({ onClose, isPinned, onTogglePin }) {
-  const { jsonInput, setJsonInput, validationErrors } = useSchemaStore();
+  const { schema, jsonInput, setJsonInput, validationErrors, setValidationErrors } = useSchemaStore();
   const [localInput, setLocalInput] = useState(jsonInput || "{\n  \n}");
+  const [parseError, setParseError] = useState(null);
+
+  // Validate JSON against schema
+  const runValidation = useCallback(
+    (inputValue) => {
+      // Try to parse the JSON
+      let parsedJson;
+      try {
+        parsedJson = JSON.parse(inputValue);
+        setParseError(null);
+      } catch (e) {
+        setParseError(`Invalid JSON: ${e.message}`);
+        setValidationErrors([]);
+        return;
+      }
+
+      // Generate JSON Schema from internal state
+      const jsonSchema = generateJsonSchema(schema);
+
+      // Validate
+      const result = validateJson(jsonSchema, parsedJson);
+      setValidationErrors(result.errors);
+    },
+    [schema, setValidationErrors]
+  );
+
+  const debouncedValidation = useDebounce(runValidation, 300);
+
+  // Track previous schema to detect changes
+  const schemaRef = useRef(schema);
 
   const handleEditorChange = (value) => {
     setLocalInput(value);
     setJsonInput(value);
+    debouncedValidation(value);
   };
+
+  // Re-validate when schema changes
+  useEffect(() => {
+    if (schemaRef.current !== schema && localInput) {
+      schemaRef.current = schema;
+      // Use setTimeout to avoid sync setState in effect
+      setTimeout(() => runValidation(localInput), 0);
+    }
+  }, [schema, localInput, runValidation]);
 
   return (
     <div className="h-full flex flex-col bg-white">
@@ -46,8 +89,10 @@ export default function ValidatorPanel({ onClose, isPinned, onTogglePin }) {
           </h3>
         </div>
         <div className="p-3 max-h-32 overflow-auto">
-          {validationErrors.length === 0 ? (
-            <p className="text-sm text-gray-500">No errors</p>
+          {parseError ? (
+            <p className="text-sm text-red-600">{parseError}</p>
+          ) : validationErrors.length === 0 ? (
+            <p className="text-sm text-green-600">✓ Valid JSON</p>
           ) : (
             <ul className="space-y-1">
               {validationErrors.map((error, index) => (

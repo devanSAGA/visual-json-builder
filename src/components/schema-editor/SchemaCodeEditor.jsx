@@ -18,8 +18,11 @@ export default function SchemaCodeEditor() {
   // Sync editor value when store changes (from visual editor)
   useEffect(() => {
     if (!isInternalUpdate.current) {
-      setEditorValue(jsonSchemaString)
-      setParseError(null)
+      // Use setTimeout to avoid sync setState in effect
+      setTimeout(() => {
+        setEditorValue(jsonSchemaString)
+        setParseError(null)
+      }, 0)
     }
     isInternalUpdate.current = false
   }, [jsonSchemaString])
