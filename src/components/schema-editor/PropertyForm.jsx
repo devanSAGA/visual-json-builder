@@ -8,12 +8,13 @@ const typeOptions = [
   { value: 'null', label: 'Null', description: 'Null value only' },
 ]
 
-export default function PropertyForm({ onSubmit, onCancel }) {
+export default function PropertyForm({ initialValues, onSubmit, onCancel }) {
+  const isEditing = initialValues !== null && initialValues !== undefined
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    type: 'text',
-    required: false,
+    name: initialValues?.name ?? '',
+    description: initialValues?.description ?? '',
+    type: initialValues?.type ?? 'text',
+    required: initialValues?.required ?? false,
   })
 
   const handleChange = (field, value) => {
@@ -64,7 +65,7 @@ export default function PropertyForm({ onSubmit, onCancel }) {
           Cancel
         </Button>
         <Button type="submit">
-          Add Property
+          {isEditing ? 'Save Changes' : 'Add Property'}
         </Button>
       </div>
     </form>

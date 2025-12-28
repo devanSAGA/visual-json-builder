@@ -7,7 +7,7 @@ import { FlaskConical } from "lucide-react";
 
 function App() {
   const [isValidatorOpen, setIsValidatorOpen] = useState(true);
-  const [isValidatorPinned, setIsValidatorPinned] = useState(false);
+  const [isValidatorPinned, setIsValidatorPinned] = useState(true);
   const validatorRef = useRef(null);
 
   // Close validator when clicking outside (only if not pinned)
