@@ -92,7 +92,7 @@ export default function PropertyRow({
   const nestedChildren = getNestedChildren();
 
   return (
-    <div style={{ marginLeft: level * 20 }}>
+    <div style={{ marginLeft: level * 4 }}>
       <div className="group flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 hover:border-gray-300 transition-colors">
         <div className="flex items-center gap-2 min-w-0 flex-1">
           {/* Expand/collapse chevron for object/array types */}

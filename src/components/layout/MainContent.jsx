@@ -1,27 +1,13 @@
-import { useState, useRef, useCallback } from "react";
+import { useState } from "react";
 import { SchemaEditorPane } from "../schema-editor";
 import { ValidatorPanel } from "../validator";
 import { Button } from "../ui";
 import { FlaskConical } from "lucide-react";
-import useClickOutside from "../../hooks/useClickOutside";
 
 const VALIDATOR_PANE_WIDTH = 600;
 
 function MainContent() {
   const [isValidatorOpen, setIsValidatorOpen] = useState(true);
-  const [isValidatorPinned, setIsValidatorPinned] = useState(true);
-  const validatorRef = useRef(null);
-
-  const handleCloseValidator = useCallback(() => {
-    setIsValidatorOpen(false);
-  }, []);
-
-  // If validator panel is not pinned, close it on an outside click
-  useClickOutside(
-    validatorRef,
-    handleCloseValidator,
-    isValidatorOpen && !isValidatorPinned
-  );
 
   return (
     <div className="h-full flex gap-4">
@@ -52,15 +38,10 @@ function MainContent() {
       {/* Container 2: Validator Panel */}
       {isValidatorOpen && (
         <div
-          ref={validatorRef}
           className="h-full flex-shrink-0 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden transition-all duration-200"
           style={{ width: `${VALIDATOR_PANE_WIDTH}px` }}
         >
-          <ValidatorPanel
-            onClose={() => setIsValidatorOpen(false)}
-            isPinned={isValidatorPinned}
-            onTogglePin={() => setIsValidatorPinned(!isValidatorPinned)}
-          />
+          <ValidatorPanel onClose={() => setIsValidatorOpen(false)} />
         </div>
       )}
     </div>

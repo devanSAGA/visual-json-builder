@@ -3,6 +3,7 @@ import Editor from '@monaco-editor/react'
 import useSchemaStore from '../../store/useSchemaStore'
 import { generateJsonSchema } from '../../utils/schemaGenerator'
 import { parseJsonSchema } from '../../utils/schemaParser'
+import { prettifyJson } from '../../utils/jsonFormatter'
 import useDebounce from '../../hooks/useDebounce'
 
 const EDITOR_OPTIONS = {
@@ -24,12 +25,9 @@ const SchemaCodeEditor = forwardRef(function SchemaCodeEditor(props, ref) {
 
   useImperativeHandle(ref, () => ({
     prettify: () => {
-      try {
-        const parsed = JSON.parse(editorValue)
-        const formatted = JSON.stringify(parsed, null, 2)
-        setEditorValue(formatted)
-      } catch {
-        // If JSON is invalid, do nothing
+      const { success, result } = prettifyJson(editorValue)
+      if (success) {
+        setEditorValue(result)
       }
     }
   }))

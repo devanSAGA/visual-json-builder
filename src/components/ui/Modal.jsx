@@ -1,8 +1,13 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import Button from './Button'
+import useClickOutside from '../../hooks/useClickOutside'
 
 export default function Modal({ isOpen, onClose, title, children }) {
+  const modalRef = useRef(null)
+
+  useClickOutside(modalRef, onClose, isOpen)
+
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape') onClose()
@@ -23,14 +28,11 @@ export default function Modal({ isOpen, onClose, title, children }) {
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div
-        className="fixed inset-0 bg-black/50 transition-opacity"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black/50 transition-opacity" />
       <div className="flex min-h-full items-center justify-center p-4">
         <div
+          ref={modalRef}
           className="relative bg-white rounded-lg shadow-xl w-full max-w-md transform transition-all"
-          onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">{title}</h2>

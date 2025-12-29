@@ -10,9 +10,14 @@ import ValidationErrorsList from "./ValidationErrorsList";
 
 const DEFAULT_INPUT_JSON = "{\n  \n}";
 
-export default function ValidatorPanel({ onClose, isPinned, onTogglePin }) {
-  const { schema, jsonInput, setJsonInput, validationErrors, setValidationErrors } =
-    useSchemaStore();
+export default function ValidatorPanel({ onClose }) {
+  const {
+    schema,
+    jsonInput,
+    setJsonInput,
+    validationErrors,
+    setValidationErrors,
+  } = useSchemaStore();
 
   const [localInput, setLocalInput] = useState(jsonInput || DEFAULT_INPUT_JSON);
   const [parseError, setParseError] = useState(null);
@@ -126,11 +131,7 @@ export default function ValidatorPanel({ onClose, isPinned, onTogglePin }) {
 
   return (
     <div className="h-full flex flex-col bg-white">
-      <ValidatorHeader
-        onClose={onClose}
-        isPinned={isPinned}
-        onTogglePin={onTogglePin}
-      />
+      <ValidatorHeader onClose={onClose} />
 
       <JsonInputEditor
         value={localInput}
@@ -152,9 +153,7 @@ export default function ValidatorPanel({ onClose, isPinned, onTogglePin }) {
       {!hasErrors && hasValidated && isNonDefaultInput && (
         <div className="mx-4 mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
           <CheckCircle size={18} className="text-green-600 flex-shrink-0" />
-          <span className="text-sm text-green-800 font-medium">
-            Valid JSON — no errors found
-          </span>
+          <span className="text-sm text-green-800 font-medium">Valid JSON</span>
         </div>
       )}
     </div>

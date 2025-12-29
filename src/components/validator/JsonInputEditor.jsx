@@ -1,8 +1,9 @@
 import { useEffect, useRef } from "react";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, Paintbrush } from "lucide-react";
 import Editor from "@monaco-editor/react";
 import { Badge, Button } from "../ui";
 import useCopyToClipboard from "../../hooks/useCopyToClipboard";
+import { prettifyJson } from "../../utils/jsonFormatter";
 
 const EDITOR_OPTIONS = {
   minimap: { enabled: false },
@@ -27,6 +28,13 @@ export default function JsonInputEditor({
 }) {
   const monacoRef = useRef(null);
   const { copied, copy } = useCopyToClipboard();
+
+  const handlePrettify = () => {
+    const { success, result } = prettifyJson(value);
+    if (success) {
+      onChange(result);
+    }
+  };
 
   // Configure JSON schema for autocompletion
   useEffect(() => {
@@ -76,18 +84,28 @@ export default function JsonInputEditor({
             </Badge>
           )}
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => copy(value)}
-          title="Copy to clipboard"
-        >
-          {copied ? (
-            <Check size={14} className="text-green-500" />
-          ) : (
-            <Copy size={14} />
-          )}
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handlePrettify}
+            title="Prettify JSON"
+          >
+            <Paintbrush size={16} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => copy(value)}
+            title="Copy to clipboard"
+          >
+            {copied ? (
+              <Check size={16} className="text-green-500" />
+            ) : (
+              <Copy size={16} />
+            )}
+          </Button>
+        </div>
       </div>
       <div className="flex-1 min-h-0">
         <Editor
