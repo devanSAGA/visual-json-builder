@@ -30,11 +30,11 @@ export function parseJsonSchema(jsonSchema) {
   return schema
 }
 
-// Parse a single property from JSON Schema
+// Parse a single property from JSON Schema (recursive for nested)
 function parseProperty(name, propSchema, requiredFields) {
   const type = reverseTypeMap[propSchema.type] || 'text'
 
-  return {
+  const property = {
     id: uuidv4(),
     name,
     type,
@@ -42,6 +42,43 @@ function parseProperty(name, propSchema, requiredFields) {
     required: requiredFields.includes(name),
     validation: parseValidation(type, propSchema),
   }
+
+  // Handle nested object properties (recursive)
+  if (type === 'object' && propSchema.properties) {
+    property.properties = []
+    const nestedRequired = propSchema.required || []
+    for (const [nestedName, nestedSchema] of Object.entries(propSchema.properties)) {
+      property.properties.push(parseProperty(nestedName, nestedSchema, nestedRequired))
+    }
+  }
+
+  // Handle array items (recursive)
+  if (type === 'array') {
+    property.items = parseArrayItems(propSchema.items)
+  }
+
+  return property
+}
+
+// Parse array items schema (single type only)
+function parseArrayItems(itemsSchema) {
+  if (!itemsSchema) {
+    return { type: 'text' }
+  }
+
+  // Single type
+  const itemType = reverseTypeMap[itemsSchema.type] || 'text'
+
+  if (itemType === 'object' && itemsSchema.properties) {
+    const objectProperties = []
+    const requiredFields = itemsSchema.required || []
+    for (const [propName, propSchema] of Object.entries(itemsSchema.properties)) {
+      objectProperties.push(parseProperty(propName, propSchema, requiredFields))
+    }
+    return { type: 'object', objectProperties }
+  }
+
+  return { type: itemType }
 }
 
 // Parse validation rules based on type
@@ -75,9 +112,7 @@ function parseValidation(type, propSchema) {
         minItems: propSchema.minItems ?? null,
         maxItems: propSchema.maxItems ?? null,
         uniqueItems: propSchema.uniqueItems ?? false,
-        itemType: propSchema.items?.type
-          ? reverseTypeMap[propSchema.items.type] || 'text'
-          : 'text',
+        // Note: items handling moved to property.items for recursive support
       }
     case 'null':
       return {}

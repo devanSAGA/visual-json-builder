@@ -1,11 +1,52 @@
+import { CheckCircle } from "lucide-react";
+
 export default function RadioGroup({
   label,
   name,
   options,
   value,
   onChange,
-  className = '',
+  className = "",
+  variant = "default", // 'default' | 'compact'
 }) {
+  if (variant === "compact") {
+    return (
+      <div className={className}>
+        {label && (
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {label}
+          </label>
+        )}
+        <div className="flex flex-wrap gap-2">
+          {options.map((option) => (
+            <label
+              key={option.value}
+              className={`
+                cursor-pointer rounded-md border px-3 py-1.5 text-sm font-medium
+                transition-all
+                ${
+                  value === option.value
+                    ? "border-blue-600 bg-blue-50 text-blue-700"
+                    : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
+                }
+              `}
+            >
+              <input
+                type="radio"
+                name={name}
+                value={option.value}
+                checked={value === option.value}
+                onChange={(e) => onChange(e.target.value)}
+                className="sr-only"
+              />
+              {option.label}
+            </label>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={className}>
       {label && (
@@ -13,16 +54,17 @@ export default function RadioGroup({
           {label}
         </label>
       )}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         {options.map((option) => (
           <label
             key={option.value}
             className={`
-              relative flex cursor-pointer rounded-lg border p-4
+              relative flex cursor-pointer rounded-lg border p-3
               focus:outline-none transition-all
-              ${value === option.value
-                ? 'border-blue-600 bg-blue-50 ring-2 ring-blue-600'
-                : 'border-gray-200 bg-white hover:border-gray-300'
+              ${
+                value === option.value
+                  ? "border-blue-600 bg-blue-50 ring-2 ring-blue-600"
+                  : "border-gray-200 bg-white hover:border-gray-300"
               }
             `}
           >
@@ -35,31 +77,33 @@ export default function RadioGroup({
               className="sr-only"
             />
             <div className="flex flex-col">
-              <span className={`
+              <span
+                className={`
                 text-sm font-medium
-                ${value === option.value ? 'text-blue-900' : 'text-gray-900'}
-              `}>
+                ${value === option.value ? "text-blue-900" : "text-gray-900"}
+              `}
+              >
                 {option.label}
               </span>
               {option.description && (
-                <span className={`
+                <span
+                  className={`
                   text-xs mt-0.5
-                  ${value === option.value ? 'text-blue-700' : 'text-gray-500'}
-                `}>
+                  ${value === option.value ? "text-blue-700" : "text-gray-500"}
+                `}
+                >
                   {option.description}
                 </span>
               )}
             </div>
             {value === option.value && (
               <div className="absolute top-2 right-2 text-blue-600">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
+                <CheckCircle size={12} />
               </div>
             )}
           </label>
         ))}
       </div>
     </div>
-  )
+  );
 }

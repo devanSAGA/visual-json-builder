@@ -69,13 +69,17 @@ function VirtualizedList({
 export default function VisualBuilder() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProperty, setEditingProperty] = useState(null);
+  const [nestedParentId, setNestedParentId] = useState(null);
+  const [isArrayItemAdd, setIsArrayItemAdd] = useState(false);
   const { schema, addProperty, updateProperty, deleteProperty } =
     useSchemaStore();
   const parentRef = useRef(null);
 
   const handleAddProperty = (formData) => {
-    addProperty(formData);
+    addProperty(formData, nestedParentId, isArrayItemAdd);
     setIsModalOpen(false);
+    setNestedParentId(null);
+    setIsArrayItemAdd(false);
   };
 
   const handleEditProperty = (formData) => {
@@ -87,7 +91,26 @@ export default function VisualBuilder() {
     setEditingProperty(property);
   }, []);
 
-  const shouldVirtualize = schema.properties.length >= VIRTUALIZATION_THRESHOLD;
+  const handleAddNested = useCallback((parentId, isArrayItem = false) => {
+    setNestedParentId(parentId);
+    setIsArrayItemAdd(isArrayItem);
+    setIsModalOpen(true);
+  }, []);
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setNestedParentId(null);
+    setIsArrayItemAdd(false);
+  };
+
+  // Check if any property has nested types (object or array)
+  const hasNestedTypes = schema.properties.some(
+    (p) => p.type === "object" || p.type === "array"
+  );
+
+  // Disable virtualization when there are nested types (variable row heights)
+  const shouldVirtualize =
+    !hasNestedTypes && schema.properties.length >= VIRTUALIZATION_THRESHOLD;
 
   return (
     <div className="p-4 h-full overflow-auto">
@@ -114,6 +137,7 @@ export default function VisualBuilder() {
               onUpdate={updateProperty}
               onDelete={deleteProperty}
               onEditFull={openEditModal}
+              onAddNested={handleAddNested}
             />
           ))}
         </div>
@@ -121,12 +145,12 @@ export default function VisualBuilder() {
 
       <Modal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Add Property"
+        onClose={handleCloseModal}
+        title={nestedParentId ? "Add Nested Property" : "Add Property"}
       >
         <PropertyForm
           onSubmit={handleAddProperty}
-          onCancel={() => setIsModalOpen(false)}
+          onCancel={handleCloseModal}
         />
       </Modal>
 

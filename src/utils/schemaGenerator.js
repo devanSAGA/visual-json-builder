@@ -41,7 +41,7 @@ export function generateJsonSchema(schema) {
   return jsonSchema;
 }
 
-// Generate schema for a single property
+// Generate schema for a single property (recursive for nested)
 function generatePropertySchema(prop) {
   const propSchema = {
     type: typeMap[prop.type] || "string",
@@ -61,13 +61,52 @@ function generatePropertySchema(prop) {
       break;
     case "array":
       addArrayValidation(propSchema, prop.validation);
+      // Handle array items (recursive)
+      if (prop.items) {
+        propSchema.items = generateArrayItems(prop.items);
+      }
       break;
     case "object":
       addObjectValidation(propSchema, prop.validation);
+      // Handle nested object properties (recursive)
+      if (prop.properties && prop.properties.length > 0) {
+        propSchema.properties = {};
+        propSchema.required = [];
+        for (const nestedProp of prop.properties) {
+          propSchema.properties[nestedProp.name] = generatePropertySchema(nestedProp);
+          if (nestedProp.required) {
+            propSchema.required.push(nestedProp.name);
+          }
+        }
+        if (propSchema.required.length === 0) {
+          delete propSchema.required;
+        }
+      }
       break;
   }
 
   return propSchema;
+}
+
+// Generate array items schema (single type only)
+function generateArrayItems(items) {
+  const itemType = items.type || "text";
+
+  if (itemType === "object" && items.objectProperties?.length > 0) {
+    const objectSchema = { type: "object", properties: {}, required: [] };
+    for (const prop of items.objectProperties) {
+      objectSchema.properties[prop.name] = generatePropertySchema(prop);
+      if (prop.required) {
+        objectSchema.required.push(prop.name);
+      }
+    }
+    if (objectSchema.required.length === 0) {
+      delete objectSchema.required;
+    }
+    return objectSchema;
+  }
+
+  return { type: typeMap[itemType] || "string" };
 }
 
 function addTextValidation(schema, validation) {
@@ -113,9 +152,7 @@ function addArrayValidation(schema, validation) {
   if (validation.uniqueItems) {
     schema.uniqueItems = true;
   }
-  if (validation.itemType) {
-    schema.items = { type: typeMap[validation.itemType] || "string" };
-  }
+  // Note: items handling moved to generatePropertySchema for recursive support
 }
 
 function addObjectValidation(schema, validation) {
