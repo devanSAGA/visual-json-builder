@@ -75,6 +75,9 @@ export default function ValidatorPanel({ onClose, isPinned, onTogglePin }) {
   // Only show badge if input is non-default and has errors
   const showBadge = isNonDefaultInput && (hasErrors || hasValidated);
 
+  // Generate JSON schema for editor autocompletion
+  const jsonSchema = useMemo(() => generateJsonSchema(schema), [schema]);
+
   // Validate JSON against schema
   const runValidation = useCallback(
     (inputValue) => {
@@ -135,6 +138,7 @@ export default function ValidatorPanel({ onClose, isPinned, onTogglePin }) {
         onEditorMount={handleEditorMount}
         showBadge={showBadge}
         hasErrors={hasErrors}
+        jsonSchema={jsonSchema}
       />
 
       {hasErrors && (

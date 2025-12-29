@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Copy, Check } from "lucide-react";
 import Editor from "@monaco-editor/react";
 import { Badge, Button } from "../ui";
@@ -12,6 +13,8 @@ const EDITOR_OPTIONS = {
   tabSize: 2,
   largeFileOptimizations: true,
   folding: true,
+  quickSuggestions: true,
+  suggestOnTriggerCharacters: true,
 };
 
 export default function JsonInputEditor({
@@ -20,8 +23,45 @@ export default function JsonInputEditor({
   onEditorMount,
   showBadge,
   hasErrors,
+  jsonSchema,
 }) {
+  const monacoRef = useRef(null);
   const { copied, copy } = useCopyToClipboard();
+
+  // Configure JSON schema for autocompletion
+  useEffect(() => {
+    if (monacoRef.current && jsonSchema) {
+      const monaco = monacoRef.current;
+      monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+        validate: false, // We handle validation ourselves
+        schemas: [
+          {
+            uri: "http://json-schema-builder/schema.json",
+            fileMatch: ["*"],
+            schema: jsonSchema,
+          },
+        ],
+      });
+    }
+  }, [jsonSchema]);
+
+  const handleEditorMount = (editor, monaco) => {
+    monacoRef.current = monaco;
+    // Set initial schema
+    if (jsonSchema) {
+      monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+        validate: false,
+        schemas: [
+          {
+            uri: "http://json-schema-builder/schema.json",
+            fileMatch: ["*"],
+            schema: jsonSchema,
+          },
+        ],
+      });
+    }
+    onEditorMount?.(editor);
+  };
 
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
@@ -55,7 +95,7 @@ export default function JsonInputEditor({
           language="json"
           value={value}
           onChange={onChange}
-          onMount={onEditorMount}
+          onMount={handleEditorMount}
           options={EDITOR_OPTIONS}
         />
       </div>
