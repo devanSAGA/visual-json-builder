@@ -1,3 +1,17 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.error-line-highlight {
+  background-color: rgba(239, 68, 68, 0.2);
+  animation: highlight-fade 1s ease-out forwards;
+}
+
+@keyframes highlight-fade {
+  0% {
+    background-color: rgba(239, 68, 68, 0.3);
+  }
+  100% {
+    background-color: rgba(239, 68, 68, 0.1);
+  }
+}

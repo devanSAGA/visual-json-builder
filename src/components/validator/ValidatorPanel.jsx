@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { CheckCircle } from "lucide-react";
 import useSchemaStore from "../../store/useSchemaStore";
 import { generateJsonSchema } from "../../utils/schemaGenerator";
 import { validateJson } from "../../utils/jsonValidator";
@@ -22,11 +23,38 @@ export default function ValidatorPanel({ onClose, isPinned, onTogglePin }) {
     editorRef.current = editor;
   };
 
+  const decorationsRef = useRef([]);
+
   const goToLine = (lineNumber) => {
     if (editorRef.current && lineNumber) {
-      editorRef.current.revealLineInCenter(lineNumber);
-      editorRef.current.setPosition({ lineNumber, column: 1 });
-      editorRef.current.focus();
+      const editor = editorRef.current;
+      editor.revealLineInCenter(lineNumber);
+      editor.setPosition({ lineNumber, column: 1 });
+      editor.focus();
+
+      // Add temporary highlight decoration
+      decorationsRef.current = editor.deltaDecorations(decorationsRef.current, [
+        {
+          range: {
+            startLineNumber: lineNumber,
+            startColumn: 1,
+            endLineNumber: lineNumber,
+            endColumn: 1,
+          },
+          options: {
+            isWholeLine: true,
+            className: "error-line-highlight",
+          },
+        },
+      ]);
+
+      // Remove highlight after 1 second
+      setTimeout(() => {
+        decorationsRef.current = editor.deltaDecorations(
+          decorationsRef.current,
+          []
+        );
+      }, 1000);
     }
   };
 
@@ -115,6 +143,15 @@ export default function ValidatorPanel({ onClose, isPinned, onTogglePin }) {
           errors={validationErrors}
           onGoToLine={goToLine}
         />
+      )}
+
+      {!hasErrors && hasValidated && isNonDefaultInput && (
+        <div className="mx-4 mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
+          <CheckCircle size={18} className="text-green-600 flex-shrink-0" />
+          <span className="text-sm text-green-800 font-medium">
+            Valid JSON — no errors found
+          </span>
+        </div>
       )}
     </div>
   );

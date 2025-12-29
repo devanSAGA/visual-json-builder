@@ -3,7 +3,7 @@ import {
   Copy,
   Download,
   Check,
-  Wand2,
+  Paintbrush,
   SquareChevronRight,
   Braces,
 } from "lucide-react";
@@ -63,7 +63,7 @@ export default function SchemaEditorPane() {
         onClick={handlePrettify}
         title="Prettify JSON"
       >
-        <Wand2 size={16} />
+        <Paintbrush size={16} />
       </Button>
       <Button
         variant="ghost"
