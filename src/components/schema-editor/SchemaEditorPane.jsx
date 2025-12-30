@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useMemo } from "react";
 import {
   Copy,
   Download,
@@ -14,14 +14,22 @@ import useSchemaStore from "../../store/useSchemaStore";
 import { generateJsonSchema } from "../../utils/schemaGenerator";
 import useCopyToClipboard from "../../hooks/useCopyToClipboard";
 
-function PaneHeader({ icon, title, actions }) {
+// In % unit
+const LEFT_PANE_DEFAULT_WIDTH = 50;
+const LEFT_PANE_MIN_WIDTH = 25;
+const LEFT_PANE_MAX_WIDTH = 75;
+
+function EditorPane({ icon, title, actions, children, overflow = "auto" }) {
   return (
-    <div className="h-10 pl-4 pr-2 flex items-center justify-between border-b border-gray-200">
-      <div className="flex items-center gap-2">
-        {icon}
-        <h2 className="text-sm font-medium text-gray-700">{title}</h2>
+    <div className="h-full flex flex-col bg-white">
+      <div className="h-10 pl-4 pr-2 flex items-center justify-between border-b border-gray-200">
+        <div className="flex items-center gap-2">
+          {icon}
+          <h2 className="text-sm font-medium text-gray-700">{title}</h2>
+        </div>
+        {actions && <div className="flex items-center gap-1">{actions}</div>}
       </div>
-      {actions && <div className="flex items-center gap-1">{actions}</div>}
+      <div className={`flex-1 overflow-${overflow}`}>{children}</div>
     </div>
   );
 }
@@ -31,13 +39,12 @@ export default function SchemaEditorPane() {
   const editorRef = useRef(null);
   const { copied, copy } = useCopyToClipboard();
 
-  const getSchemaJson = () => {
+  const schemaJson = useMemo(() => {
     const jsonSchema = generateJsonSchema(schema);
     return JSON.stringify(jsonSchema, null, 2);
-  };
+  }, [schema]);
 
   const handleDownload = () => {
-    const schemaJson = getSchemaJson();
     const blob = new Blob([schemaJson], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -68,7 +75,7 @@ export default function SchemaEditorPane() {
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => copy(getSchemaJson())}
+        onClick={() => copy(schemaJson)}
         title="Copy to clipboard"
       >
         {copied ? (
@@ -89,37 +96,32 @@ export default function SchemaEditorPane() {
   );
 
   const leftPane = (
-    <div className="h-full flex flex-col bg-white">
-      <PaneHeader
-        icon={<SquareChevronRight size={16} className="text-gray-500" />}
-        title="Visual Editor"
-      />
-      <div className="flex-1 overflow-auto">
-        <VisualBuilder />
-      </div>
-    </div>
+    <EditorPane
+      icon={<SquareChevronRight size={16} className="text-gray-500" />}
+      title="Visual Editor"
+    >
+      <VisualBuilder />
+    </EditorPane>
   );
 
   const rightPane = (
-    <div className="h-full flex flex-col bg-white">
-      <PaneHeader
-        icon={<Braces size={16} className="text-gray-500" />}
-        title="JSON Schema"
-        actions={schemaActions}
-      />
-      <div className="flex-1 overflow-hidden">
-        <SchemaCodeEditor ref={editorRef} />
-      </div>
-    </div>
+    <EditorPane
+      icon={<Braces size={16} className="text-gray-500" />}
+      title="JSON Schema"
+      actions={schemaActions}
+      overflow="hidden"
+    >
+      <SchemaCodeEditor ref={editorRef} />
+    </EditorPane>
   );
 
   return (
     <ResizablePanes
       leftPane={leftPane}
       rightPane={rightPane}
-      defaultLeftWidth={50}
-      minLeftWidth={25}
-      maxLeftWidth={75}
+      defaultLeftWidth={LEFT_PANE_DEFAULT_WIDTH}
+      minLeftWidth={LEFT_PANE_MIN_WIDTH}
+      maxLeftWidth={LEFT_PANE_MAX_WIDTH}
     />
   );
 }

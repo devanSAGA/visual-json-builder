@@ -1,23 +1,15 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Pencil, Trash2, ChevronRight, Plus } from "lucide-react";
-import { Button, Badge, Select, InlineInput } from "../ui";
-
-const typeOptions = [
-  { value: "text", label: "Text" },
-  { value: "number", label: "Number" },
-  { value: "boolean", label: "Boolean" },
-  { value: "object", label: "Object" },
-  { value: "array", label: "Array" },
-  { value: "null", label: "Null" },
-];
-
-const arrayItemTypeOptions = [
-  { value: "text", label: "Text" },
-  { value: "number", label: "Number" },
-  { value: "boolean", label: "Boolean" },
-  { value: "object", label: "Object" },
-  { value: "null", label: "Null" },
-];
+import {
+  Button,
+  Badge,
+  Select,
+  InlineInput,
+  HelperMessage,
+  ConfirmDialog,
+} from "../ui";
+import { ARRAYITEM_TYPES_OPTIONS, PROPERTY_TYPES_OPTIONS } from "./constants";
+import useInlineEdit from "../../hooks/useInlineEdit";
 
 export default function PropertyRow({
   property,
@@ -27,105 +19,138 @@ export default function PropertyRow({
   onAddNested,
   level = 0,
 }) {
-  const [editingField, setEditingField] = useState(null);
-  const [editValue, setEditValue] = useState("");
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
   const [isItemTypeDropdownOpen, setIsItemTypeDropdownOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    message: "",
+    onConfirm: null,
+  });
 
-  const startEditing = (field) => {
-    setEditingField(field);
-    setEditValue(property[field] || "");
-  };
+  const handleSaveEdit = useCallback(
+    (field, value) => {
+      onUpdate(property.id, { [field]: value });
+    },
+    [onUpdate, property.id]
+  );
 
-  const saveEdit = () => {
-    if (editingField === "name" && !editValue.trim()) {
-      setEditingField(null);
-      return;
+  const validateEdit = useCallback((field, value) => {
+    if (field === "name" && !value.trim()) {
+      return false;
     }
-    onUpdate(property.id, { [editingField]: editValue });
-    setEditingField(null);
-  };
+    return true;
+  }, []);
 
-  const cancelEdit = () => {
-    setEditingField(null);
-  };
+  const { editingField, editValue, setEditValue, startEditing, saveEdit, cancelEdit } =
+    useInlineEdit({ onSave: handleSaveEdit, validate: validateEdit });
 
-  const handleTypeChange = (newType) => {
-    const oldType = property.type;
-    const hasNestedData =
-      (oldType === "object" && property.properties?.length > 0) ||
-      (oldType === "array" && property.items?.objectProperties?.length > 0);
+  const showConfirmDialog = useCallback((message, onConfirm) => {
+    setConfirmDialog({ isOpen: true, message, onConfirm });
+  }, []);
 
-    if (hasNestedData && newType !== "object" && newType !== "array") {
-      const confirmed = window.confirm(
-        "Changing type will remove nested properties. Continue?"
+  const closeConfirmDialog = useCallback(() => {
+    setConfirmDialog({ isOpen: false, message: "", onConfirm: null });
+  }, []);
+
+  const checkNestedDataLoss = useCallback(
+    (oldType, newType, isArrayItem = false) => {
+      if (isArrayItem) {
+        return (
+          oldType === "object" &&
+          property.items?.objectProperties?.length > 0 &&
+          newType !== "object"
+        );
+      }
+      return (
+        ((oldType === "object" && property.properties?.length > 0) ||
+          (oldType === "array" &&
+            property.items?.objectProperties?.length > 0)) &&
+        newType !== "object" &&
+        newType !== "array"
       );
-      if (!confirmed) return;
-    }
+    },
+    [property]
+  );
 
-    const updates = { type: newType };
-    // Initialize nested structures for object/array types
-    if (newType === "object" && !property.properties) {
-      updates.properties = [];
-    }
-    if (newType === "array" && !property.items) {
-      updates.items = { type: "text" };
-    }
-    // Clear nested data when changing away from object/array
-    if (newType !== "object") {
-      updates.properties = undefined;
-    }
-    if (newType !== "array") {
-      updates.items = undefined;
-    }
+  const applyTypeChange = useCallback(
+    (newType) => {
+      const updates = { type: newType };
+      if (newType === "object" && !property.properties) {
+        updates.properties = [];
+      }
+      if (newType === "array" && !property.items) {
+        updates.items = { type: "text" };
+      }
+      if (newType !== "object") {
+        updates.properties = undefined;
+      }
+      if (newType !== "array") {
+        updates.items = undefined;
+      }
+      onUpdate(property.id, updates);
+    },
+    [onUpdate, property]
+  );
 
-    onUpdate(property.id, updates);
-  };
+  const handleTypeChange = useCallback(
+    (newType) => {
+      if (checkNestedDataLoss(property.type, newType)) {
+        showConfirmDialog(
+          "Changing type will remove nested properties. Continue?",
+          () => applyTypeChange(newType)
+        );
+      } else {
+        applyTypeChange(newType);
+      }
+    },
+    [property.type, checkNestedDataLoss, showConfirmDialog, applyTypeChange]
+  );
 
-  const handleItemTypeChange = (newItemType) => {
-    const oldItemType = property.items?.type;
-    const hasNestedData =
-      oldItemType === "object" && property.items?.objectProperties?.length > 0;
+  const applyItemTypeChange = useCallback(
+    (newItemType) => {
+      const newItems = { type: newItemType };
+      if (newItemType === "object") {
+        newItems.objectProperties = property.items?.objectProperties || [];
+      }
+      onUpdate(property.id, { items: newItems });
+    },
+    [onUpdate, property]
+  );
 
-    if (hasNestedData && newItemType !== "object") {
-      const confirmed = window.confirm(
-        "Changing item type will remove nested properties. Continue?"
-      );
-      if (!confirmed) return;
-    }
+  const handleItemTypeChange = useCallback(
+    (newItemType) => {
+      if (checkNestedDataLoss(property.items?.type, newItemType, true)) {
+        showConfirmDialog(
+          "Changing item type will remove nested properties. Continue?",
+          () => applyItemTypeChange(newItemType)
+        );
+      } else {
+        applyItemTypeChange(newItemType);
+      }
+    },
+    [
+      property.items?.type,
+      checkNestedDataLoss,
+      showConfirmDialog,
+      applyItemTypeChange,
+    ]
+  );
 
-    const newItems = { type: newItemType };
-    if (newItemType === "object") {
-      newItems.objectProperties = property.items?.objectProperties || [];
-    }
-
-    onUpdate(property.id, { items: newItems });
-  };
-
-  // Check if this property can have children
-  const canHaveChildren =
-    property.type === "object" ||
-    (property.type === "array" && property.items?.type === "object");
-
-  // Get nested children based on type
-  const getNestedChildren = () => {
-    if (property.type === "object") {
-      return property.properties || [];
-    }
-    if (property.type === "array" && property.items?.type === "object") {
-      return property.items?.objectProperties || [];
-    }
-    return [];
-  };
-
-  const nestedChildren = getNestedChildren();
+  // Determine nested children and whether this property can have them
+  const isObjectType = property.type === "object";
+  const isArrayOfObjects = property.type === "array" && property.items?.type === "object";
+  const canHaveChildren = isObjectType || isArrayOfObjects;
+  const nestedChildren = isObjectType
+    ? property.properties || []
+    : isArrayOfObjects
+      ? property.items?.objectProperties || []
+      : [];
 
   return (
     <div style={{ marginLeft: level * 4 }}>
       <div className="group flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 hover:border-gray-300 transition-colors">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          {/* Expand/collapse chevron for object/array types */}
           {canHaveChildren ? (
             <Button
               variant="ghost"
@@ -142,7 +167,7 @@ export default function PropertyRow({
               />
             </Button>
           ) : (
-            <div className="w-7" /> // Spacer for alignment
+            <div className="w-7" />
           )}
 
           {/* Name - inline editable */}
@@ -156,7 +181,7 @@ export default function PropertyRow({
             />
           ) : (
             <span
-              onClick={() => startEditing("name")}
+              onClick={() => startEditing("name", property.name)}
               className="font-medium text-gray-900 px-1 py-0.5 rounded cursor-pointer truncate max-w-[150px] border border-transparent hover:border-gray-300 transition-colors"
               title={property.name}
             >
@@ -178,7 +203,7 @@ export default function PropertyRow({
           <div className="flex items-center gap-1">
             <Select
               value={property.type}
-              options={typeOptions}
+              options={PROPERTY_TYPES_OPTIONS}
               onChange={handleTypeChange}
               isOpen={isTypeDropdownOpen}
               onToggle={setIsTypeDropdownOpen}
@@ -188,7 +213,7 @@ export default function PropertyRow({
                 <span className="text-xs text-gray-400">of</span>
                 <Select
                   value={property.items?.type || "text"}
-                  options={arrayItemTypeOptions}
+                  options={ARRAYITEM_TYPES_OPTIONS}
                   onChange={handleItemTypeChange}
                   isOpen={isItemTypeDropdownOpen}
                   onToggle={setIsItemTypeDropdownOpen}
@@ -229,16 +254,16 @@ export default function PropertyRow({
       {/* Nested children */}
       {isExpanded && canHaveChildren && (
         <div className="ml-4 mt-2 pl-4 border-l-2 border-gray-200">
-          {property.type === "array" && property.items?.type === "object" && (
+          {isArrayOfObjects && (
             <div className="text-xs text-gray-500 mb-2 font-medium">
               Array item properties:
             </div>
           )}
 
           {nestedChildren.length === 0 ? (
-            <div className="text-sm text-gray-400 italic mb-2">
+            <HelperMessage className="italic mb-2">
               No nested properties yet
-            </div>
+            </HelperMessage>
           ) : (
             <div className="space-y-2">
               {nestedChildren.map((child) => (
@@ -271,6 +296,18 @@ export default function PropertyRow({
           )}
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onConfirm={() => {
+          confirmDialog.onConfirm?.();
+          closeConfirmDialog();
+        }}
+        onCancel={closeConfirmDialog}
+        title="Confirm Change"
+        message={confirmDialog.message}
+        confirmLabel="Continue"
+      />
     </div>
   );
 }

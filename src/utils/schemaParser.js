@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
 
-// Map JSON Schema type to internal type
 const reverseTypeMap = {
   string: 'text',
   number: 'number',
@@ -11,7 +10,6 @@ const reverseTypeMap = {
   null: 'null',
 }
 
-// Parse JSON Schema to internal format
 export function parseJsonSchema(jsonSchema) {
   const schema = {
     title: jsonSchema.title || '',
@@ -30,7 +28,6 @@ export function parseJsonSchema(jsonSchema) {
   return schema
 }
 
-// Parse a single property from JSON Schema (recursive for nested)
 function parseProperty(name, propSchema, requiredFields) {
   const type = reverseTypeMap[propSchema.type] || 'text'
 
@@ -43,7 +40,6 @@ function parseProperty(name, propSchema, requiredFields) {
     validation: parseValidation(type, propSchema),
   }
 
-  // Handle nested object properties (recursive)
   if (type === 'object' && propSchema.properties) {
     property.properties = []
     const nestedRequired = propSchema.required || []
@@ -52,7 +48,6 @@ function parseProperty(name, propSchema, requiredFields) {
     }
   }
 
-  // Handle array items (recursive)
   if (type === 'array') {
     property.items = parseArrayItems(propSchema.items)
   }
@@ -60,13 +55,11 @@ function parseProperty(name, propSchema, requiredFields) {
   return property
 }
 
-// Parse array items schema (single type only)
 function parseArrayItems(itemsSchema) {
   if (!itemsSchema) {
     return { type: 'text' }
   }
 
-  // Single type
   const itemType = reverseTypeMap[itemsSchema.type] || 'text'
 
   if (itemType === 'object' && itemsSchema.properties) {
@@ -81,7 +74,6 @@ function parseArrayItems(itemsSchema) {
   return { type: itemType }
 }
 
-// Parse validation rules based on type
 function parseValidation(type, propSchema) {
   switch (type) {
     case 'text':
@@ -90,6 +82,7 @@ function parseValidation(type, propSchema) {
         maxLength: propSchema.maxLength ?? null,
         pattern: propSchema.pattern ?? null,
         format: propSchema.format ?? null,
+        enum: propSchema.enum ?? [],
       }
     case 'number':
       return {
@@ -99,8 +92,16 @@ function parseValidation(type, propSchema) {
         exclusiveMaximum: propSchema.exclusiveMaximum ?? null,
         multipleOf: propSchema.multipleOf ?? null,
       }
-    case 'boolean':
-      return {}
+    case 'boolean': {
+      const enumVal = propSchema.enum
+      if (Array.isArray(enumVal) && enumVal.length === 1) {
+        return {
+          allowTrue: enumVal.includes(true),
+          allowFalse: enumVal.includes(false),
+        }
+      }
+      return { allowTrue: true, allowFalse: true }
+    }
     case 'object':
       return {
         minProperties: propSchema.minProperties ?? null,
@@ -112,7 +113,6 @@ function parseValidation(type, propSchema) {
         minItems: propSchema.minItems ?? null,
         maxItems: propSchema.maxItems ?? null,
         uniqueItems: propSchema.uniqueItems ?? false,
-        // Note: items handling moved to property.items for recursive support
       }
     case 'null':
       return {}

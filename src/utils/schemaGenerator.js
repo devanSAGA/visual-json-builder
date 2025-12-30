@@ -1,4 +1,3 @@
-// Map internal type to JSON Schema type
 const typeMap = {
   text: "string",
   number: "number",
@@ -8,7 +7,6 @@ const typeMap = {
   null: "null",
 };
 
-// Generate JSON Schema from internal state
 export function generateJsonSchema(schema) {
   const jsonSchema = {
     $schema: "http://json-schema.org/draft-07/schema#",
@@ -33,7 +31,6 @@ export function generateJsonSchema(schema) {
     }
   }
 
-  // Remove required array if empty
   if (jsonSchema.required.length === 0) {
     delete jsonSchema.required;
   }
@@ -41,7 +38,6 @@ export function generateJsonSchema(schema) {
   return jsonSchema;
 }
 
-// Generate schema for a single property (recursive for nested)
 function generatePropertySchema(prop) {
   const propSchema = {
     type: typeMap[prop.type] || "string",
@@ -51,7 +47,6 @@ function generatePropertySchema(prop) {
     propSchema.description = prop.description;
   }
 
-  // Add validation rules based on type
   switch (prop.type) {
     case "text":
       addTextValidation(propSchema, prop.validation);
@@ -64,14 +59,12 @@ function generatePropertySchema(prop) {
       break;
     case "array":
       addArrayValidation(propSchema, prop.validation);
-      // Handle array items (recursive)
       if (prop.items) {
         propSchema.items = generateArrayItems(prop.items);
       }
       break;
     case "object":
       addObjectValidation(propSchema, prop.validation);
-      // Handle nested object properties (recursive)
       if (prop.properties && prop.properties.length > 0) {
         propSchema.properties = {};
         propSchema.required = [];
@@ -91,7 +84,6 @@ function generatePropertySchema(prop) {
   return propSchema;
 }
 
-// Generate array items schema (single type only)
 function generateArrayItems(items) {
   const itemType = items.type || "text";
 
@@ -113,6 +105,7 @@ function generateArrayItems(items) {
 }
 
 function addTextValidation(schema, validation) {
+  if (!validation) return;
   if (validation.minLength !== null) {
     schema.minLength = validation.minLength;
   }
@@ -136,17 +129,15 @@ function addBooleanValidation(schema, validation) {
   const allowTrue = validation.allowTrue !== false;
   const allowFalse = validation.allowFalse !== false;
 
-  // Only add enum if one value is restricted
   if (!allowTrue && allowFalse) {
     schema.enum = [false];
   } else if (allowTrue && !allowFalse) {
     schema.enum = [true];
   }
-  // If both are false, that's invalid - don't add enum
-  // If both are true, no restriction needed
 }
 
 function addNumberValidation(schema, validation) {
+  if (!validation) return;
   if (validation.minimum !== null) {
     schema.minimum = validation.minimum;
   }
@@ -165,6 +156,7 @@ function addNumberValidation(schema, validation) {
 }
 
 function addArrayValidation(schema, validation) {
+  if (!validation) return;
   if (validation.minItems !== null) {
     schema.minItems = validation.minItems;
   }
@@ -174,10 +166,10 @@ function addArrayValidation(schema, validation) {
   if (validation.uniqueItems) {
     schema.uniqueItems = true;
   }
-  // Note: items handling moved to generatePropertySchema for recursive support
 }
 
 function addObjectValidation(schema, validation) {
+  if (!validation) return;
   if (validation.minProperties !== null) {
     schema.minProperties = validation.minProperties;
   }

@@ -9,6 +9,8 @@ import JsonInputEditor from "./JsonInputEditor";
 import ValidationErrorsList from "./ValidationErrorsList";
 
 const DEFAULT_INPUT_JSON = "{\n  \n}";
+const HIGHLIGHT_DURATION_MS = 1000;
+const VALIDATION_DEBOUNCE_MS = 300;
 
 export default function ValidatorPanel({ onClose }) {
   const {
@@ -29,15 +31,19 @@ export default function ValidatorPanel({ onClose }) {
   };
 
   const decorationsRef = useRef([]);
+  const highlightTimeoutRef = useRef(null);
 
-  const goToLine = (lineNumber) => {
+  const goToLine = useCallback((lineNumber) => {
     if (editorRef.current && lineNumber) {
       const editor = editorRef.current;
       editor.revealLineInCenter(lineNumber);
       editor.setPosition({ lineNumber, column: 1 });
       editor.focus();
 
-      // Add temporary highlight decoration
+      if (highlightTimeoutRef.current) {
+        clearTimeout(highlightTimeoutRef.current);
+      }
+
       decorationsRef.current = editor.deltaDecorations(decorationsRef.current, [
         {
           range: {
@@ -53,23 +59,29 @@ export default function ValidatorPanel({ onClose }) {
         },
       ]);
 
-      // Remove highlight after 1 second
-      setTimeout(() => {
+      highlightTimeoutRef.current = setTimeout(() => {
         decorationsRef.current = editor.deltaDecorations(
           decorationsRef.current,
           []
         );
-      }, 1000);
+      }, HIGHLIGHT_DURATION_MS);
     }
-  };
+  }, []);
 
-  // Check if input is non-default (not empty or just whitespace/braces)
+  useEffect(() => {
+    return () => {
+      if (highlightTimeoutRef.current) {
+        clearTimeout(highlightTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const isNonDefaultInput = useMemo(() => {
     try {
       const parsed = JSON.parse(localInput);
       return Object.keys(parsed).length > 0;
     } catch {
-      return true; // Invalid JSON counts as non-default
+      return true;
     }
   }, [localInput]);
 
@@ -77,16 +89,12 @@ export default function ValidatorPanel({ onClose }) {
   const hasValidationErrors = validationErrors.length > 0;
   const hasErrors = hasParseError || hasValidationErrors;
 
-  // Only show badge if input is non-default and has errors
   const showBadge = isNonDefaultInput && (hasErrors || hasValidated);
 
-  // Generate JSON schema for editor autocompletion
   const jsonSchema = useMemo(() => generateJsonSchema(schema), [schema]);
 
-  // Validate JSON against schema
   const runValidation = useCallback(
     (inputValue) => {
-      // Try to parse the JSON
       let parsedJson;
       try {
         parsedJson = JSON.parse(inputValue);
@@ -98,21 +106,14 @@ export default function ValidatorPanel({ onClose }) {
         return;
       }
 
-      // Generate JSON Schema from internal state
-      const jsonSchema = generateJsonSchema(schema);
-
-      // Validate - pass the raw text to get line numbers
       const result = validateJson(jsonSchema, parsedJson, inputValue);
       setValidationErrors(result.errors);
       setHasValidated(true);
     },
-    [schema, setValidationErrors]
+    [jsonSchema, setValidationErrors]
   );
 
-  const debouncedValidation = useDebounce(runValidation, 300);
-
-  // Track previous schema to detect changes
-  const schemaRef = useRef(schema);
+  const debouncedValidation = useDebounce(runValidation, VALIDATION_DEBOUNCE_MS);
 
   const handleEditorChange = (value) => {
     setLocalInput(value);
@@ -120,14 +121,13 @@ export default function ValidatorPanel({ onClose }) {
     debouncedValidation(value);
   };
 
-  // Re-validate when schema changes
   useEffect(() => {
-    if (schemaRef.current !== schema && localInput) {
-      schemaRef.current = schema;
-      // Use setTimeout to avoid sync setState in effect
-      setTimeout(() => runValidation(localInput), 0);
+    if (hasValidated && localInput) {
+      runValidation(localInput);
     }
-  }, [schema, localInput, runValidation]);
+    // Only re-validate when schema changes, not when other deps change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jsonSchema]);
 
   return (
     <div className="h-full flex flex-col bg-white">

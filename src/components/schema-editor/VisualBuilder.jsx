@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Button, Modal } from "../ui";
+import { Button, Modal, HelperMessage } from "../ui";
 import PropertyForm from "./PropertyForm";
 import PropertyRow from "./PropertyRow";
 import useSchemaStore from "../../store/useSchemaStore";
@@ -9,13 +9,8 @@ const ROW_HEIGHT = 60;
 const LIST_HEIGHT = 400;
 const VIRTUALIZATION_THRESHOLD = 20;
 
-function VirtualizedList({
-  properties,
-  parentRef,
-  onUpdate,
-  onDelete,
-  onEditFull,
-}) {
+function VirtualizedList({ properties, onUpdate, onDelete, onEditFull }) {
+  const parentRef = useRef(null);
   const rowVirtualizer = useVirtualizer({
     count: properties.length,
     getScrollElement: () => parentRef.current,
@@ -30,27 +25,21 @@ function VirtualizedList({
       style={{ height: LIST_HEIGHT }}
     >
       <div
-        style={{
-          height: `${rowVirtualizer.getTotalSize()}px`,
-          width: "100%",
-          position: "relative",
-        }}
+        className="w-full relative"
+        style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
       >
         {rowVirtualizer.getVirtualItems().map((virtualItem) => {
           const property = properties[virtualItem.index];
           return (
             <div
               key={property.id}
+              className="absolute top-0 left-0 w-full"
               style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
                 height: `${virtualItem.size}px`,
                 transform: `translateY(${virtualItem.start}px)`,
               }}
             >
-              <div style={{ paddingBottom: 8 }}>
+              <div className="pb-2">
                 <PropertyRow
                   property={property}
                   onUpdate={onUpdate}
@@ -73,7 +62,6 @@ export default function VisualBuilder() {
   const [isArrayItemAdd, setIsArrayItemAdd] = useState(false);
   const { schema, addProperty, updateProperty, deleteProperty } =
     useSchemaStore();
-  const parentRef = useRef(null);
 
   const handleAddProperty = (formData) => {
     addProperty(formData, nestedParentId, isArrayItemAdd);
@@ -117,13 +105,12 @@ export default function VisualBuilder() {
       <Button onClick={() => setIsModalOpen(true)}>+ Add Property</Button>
 
       {schema.properties.length === 0 ? (
-        <div className="mt-4 text-gray-500 text-sm">
+        <HelperMessage className="mt-4">
           No properties defined yet. Click "Add Property" to get started.
-        </div>
+        </HelperMessage>
       ) : shouldVirtualize ? (
         <VirtualizedList
           properties={schema.properties}
-          parentRef={parentRef}
           onUpdate={updateProperty}
           onDelete={deleteProperty}
           onEditFull={openEditModal}

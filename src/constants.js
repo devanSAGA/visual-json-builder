@@ -13,7 +13,7 @@ export const DEFAULT_JSON_SCHEMA = {
           minLength: null,
           maxLength: null,
           pattern: null,
-          format: null,
+          enum: [],
         },
       },
       {
@@ -25,8 +25,6 @@ export const DEFAULT_JSON_SCHEMA = {
         validation: {
           minimum: null,
           maximum: null,
-          exclusiveMinimum: null,
-          exclusiveMaximum: null,
           multipleOf: null,
         },
       },

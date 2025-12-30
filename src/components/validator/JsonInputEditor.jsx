@@ -55,7 +55,6 @@ export default function JsonInputEditor({
 
   const handleEditorMount = (editor, monaco) => {
     monacoRef.current = monaco;
-    // Set initial schema
     if (jsonSchema) {
       monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
         validate: false,

@@ -4,7 +4,37 @@ import { DEFAULT_JSON_SCHEMA } from "../constants";
 
 const initialState = DEFAULT_JSON_SCHEMA;
 
-// Helper: Find property by ID anywhere in the tree
+function getDefaultValidation(type) {
+  switch (type) {
+    case "text":
+      return {
+        minLength: null,
+        maxLength: null,
+        pattern: null,
+        enum: [],
+      };
+    case "number":
+      return {
+        minimum: null,
+        maximum: null,
+        multipleOf: null,
+      };
+    case "boolean":
+      return {
+        allowTrue: true,
+        allowFalse: true,
+      };
+    case "array":
+      return {
+        minItems: null,
+        maxItems: null,
+        uniqueItems: false,
+      };
+    default:
+      return {};
+  }
+}
+
 function findPropertyById(properties, id) {
   for (const prop of properties) {
     if (prop.id === id) return prop;
@@ -20,7 +50,6 @@ function findPropertyById(properties, id) {
   return null;
 }
 
-// Helper: Update property in nested tree (immutable)
 function updatePropertyInTree(properties, targetId, updateFn) {
   return properties.map((prop) => {
     if (prop.id === targetId) {
@@ -48,7 +77,6 @@ function updatePropertyInTree(properties, targetId, updateFn) {
   });
 }
 
-// Helper: Delete property from nested tree (immutable)
 function deleteFromTree(properties, targetId) {
   return properties
     .filter((prop) => prop.id !== targetId)
@@ -70,7 +98,6 @@ function deleteFromTree(properties, targetId) {
     });
 }
 
-// Helper: Add property to a parent (for nested additions)
 function addToParent(properties, parentId, newProperty, isArrayItem = false) {
   return properties.map((prop) => {
     if (prop.id === parentId) {
@@ -182,12 +209,6 @@ const useSchemaStore = create((set) => ({
       },
     })),
 
-  // Get property by ID (for finding nested properties)
-  getPropertyById: (id) => {
-    const state = useSchemaStore.getState();
-    return findPropertyById(state.schema.properties, id);
-  },
-
   reorderProperties: (fromIndex, toIndex) =>
     set((state) => {
       const properties = [...state.schema.properties];
@@ -198,60 +219,18 @@ const useSchemaStore = create((set) => ({
       };
     }),
 
-  // Bulk update (for when editing JSON Schema directly)
   setSchema: (schema) => set({ schema }),
 
-  // Reset
   resetSchema: () => set({ schema: initialState.schema }),
 
-  // Input validator actions (for later)
   setJsonInput: (jsonInput) => set({ jsonInput }),
 
   setValidationErrors: (validationErrors) => set({ validationErrors }),
 }));
 
-// Helper: default validation rules per type
-function getDefaultValidation(type) {
-  switch (type) {
-    case "text":
-      return {
-        minLength: null,
-        maxLength: null,
-        pattern: null,
-        format: null,
-        enum: [],
-      };
-    case "number":
-      return {
-        minimum: null,
-        maximum: null,
-        exclusiveMinimum: null,
-        exclusiveMaximum: null,
-        multipleOf: null,
-      };
-    case "boolean":
-      return {
-        allowTrue: true,
-        allowFalse: true,
-      };
-    case "object":
-      return {
-        minProperties: null,
-        maxProperties: null,
-        additionalProperties: true,
-      };
-    case "array":
-      return {
-        minItems: null,
-        maxItems: null,
-        uniqueItems: false,
-        // Note: itemType removed - now using property.items.types[]
-      };
-    case "null":
-      return {};
-    default:
-      return {};
-  }
-}
+export const getPropertyById = (id) => {
+  const state = useSchemaStore.getState();
+  return findPropertyById(state.schema.properties, id);
+};
 
 export default useSchemaStore;
