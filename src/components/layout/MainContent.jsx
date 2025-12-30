@@ -1,13 +1,13 @@
-import { useState } from "react";
 import { SchemaEditorPane } from "../schema-editor";
 import { ValidatorPanel } from "../validator";
 import { Button } from "../ui";
 import { FlaskConical } from "lucide-react";
+import useLocalStorage from "../../hooks/useLocalStorage";
 
 const VALIDATOR_PANE_WIDTH = 600;
 
 function MainContent() {
-  const [isValidatorOpen, setIsValidatorOpen] = useState(true);
+  const [isValidatorOpen, setIsValidatorOpen] = useLocalStorage("validatorPanelOpen", true);
 
   return (
     <div className="h-full flex gap-4">
