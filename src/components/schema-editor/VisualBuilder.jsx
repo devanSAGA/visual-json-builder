@@ -147,6 +147,7 @@ export default function VisualBuilder() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         title={nestedParentId ? "Add Nested Property" : "Add Property"}
+        size="xl"
       >
         <PropertyForm
           onSubmit={handleAddProperty}
@@ -158,6 +159,7 @@ export default function VisualBuilder() {
         isOpen={editingProperty !== null}
         onClose={() => setEditingProperty(null)}
         title="Edit Property"
+        size="xl"
       >
         <PropertyForm
           initialValues={editingProperty}

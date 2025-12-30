@@ -11,6 +11,14 @@ const typeOptions = [
   { value: "null", label: "Null" },
 ];
 
+const arrayItemTypeOptions = [
+  { value: "text", label: "Text" },
+  { value: "number", label: "Number" },
+  { value: "boolean", label: "Boolean" },
+  { value: "object", label: "Object" },
+  { value: "null", label: "Null" },
+];
+
 export default function PropertyRow({
   property,
   onUpdate,
@@ -22,6 +30,7 @@ export default function PropertyRow({
   const [editingField, setEditingField] = useState(null);
   const [editValue, setEditValue] = useState("");
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
+  const [isItemTypeDropdownOpen, setIsItemTypeDropdownOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
   const startEditing = (field) => {
@@ -74,9 +83,30 @@ export default function PropertyRow({
     onUpdate(property.id, updates);
   };
 
+  const handleItemTypeChange = (newItemType) => {
+    const oldItemType = property.items?.type;
+    const hasNestedData =
+      oldItemType === "object" && property.items?.objectProperties?.length > 0;
+
+    if (hasNestedData && newItemType !== "object") {
+      const confirmed = window.confirm(
+        "Changing item type will remove nested properties. Continue?"
+      );
+      if (!confirmed) return;
+    }
+
+    const newItems = { type: newItemType };
+    if (newItemType === "object") {
+      newItems.objectProperties = property.items?.objectProperties || [];
+    }
+
+    onUpdate(property.id, { items: newItems });
+  };
+
   // Check if this property can have children
   const canHaveChildren =
-    property.type === "object" || property.type === "array";
+    property.type === "object" ||
+    (property.type === "array" && property.items?.type === "object");
 
   // Get nested children based on type
   const getNestedChildren = () => {
@@ -145,13 +175,27 @@ export default function PropertyRow({
           )}
 
           {/* Type - dropdown */}
-          <Select
-            value={property.type}
-            options={typeOptions}
-            onChange={handleTypeChange}
-            isOpen={isTypeDropdownOpen}
-            onToggle={setIsTypeDropdownOpen}
-          />
+          <div className="flex items-center gap-1">
+            <Select
+              value={property.type}
+              options={typeOptions}
+              onChange={handleTypeChange}
+              isOpen={isTypeDropdownOpen}
+              onToggle={setIsTypeDropdownOpen}
+            />
+            {property.type === "array" && (
+              <>
+                <span className="text-xs text-gray-400">of</span>
+                <Select
+                  value={property.items?.type || "text"}
+                  options={arrayItemTypeOptions}
+                  onChange={handleItemTypeChange}
+                  isOpen={isItemTypeDropdownOpen}
+                  onToggle={setIsItemTypeDropdownOpen}
+                />
+              </>
+            )}
+          </div>
 
           {/* Required badge */}
           {property.required && (

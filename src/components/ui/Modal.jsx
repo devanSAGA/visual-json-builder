@@ -1,30 +1,43 @@
-import { useEffect, useRef } from 'react'
-import { X } from 'lucide-react'
-import Button from './Button'
-import useClickOutside from '../../hooks/useClickOutside'
+import { useEffect, useRef } from "react";
+import { X } from "lucide-react";
+import Button from "./Button";
+import useClickOutside from "../../hooks/useClickOutside";
 
-export default function Modal({ isOpen, onClose, title, children }) {
-  const modalRef = useRef(null)
+const sizeClasses = {
+  sm: "max-w-sm",
+  md: "max-w-md",
+  lg: "max-w-lg",
+  xl: "max-w-3xl",
+};
 
-  useClickOutside(modalRef, onClose, isOpen)
+export default function Modal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  size = "md",
+}) {
+  const modalRef = useRef(null);
+
+  useClickOutside(modalRef, onClose, isOpen);
 
   useEffect(() => {
     const handleEscape = (e) => {
-      if (e.key === 'Escape') onClose()
-    }
+      if (e.key === "Escape") onClose();
+    };
 
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape)
-      document.body.style.overflow = 'hidden'
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden";
     }
 
     return () => {
-      document.removeEventListener('keydown', handleEscape)
-      document.body.style.overflow = 'unset'
-    }
-  }, [isOpen, onClose])
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen, onClose]);
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -32,24 +45,17 @@ export default function Modal({ isOpen, onClose, title, children }) {
       <div className="flex min-h-full items-center justify-center p-4">
         <div
           ref={modalRef}
-          className="relative bg-white rounded-lg shadow-xl w-full max-w-md transform transition-all"
+          className={`relative bg-white rounded-lg shadow-xl w-full ${sizeClasses[size]} transform transition-all`}
         >
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              title="Close"
-            >
+            <Button variant="ghost" size="icon" onClick={onClose} title="Close">
               <X size={20} />
             </Button>
           </div>
-          <div className="p-4">
-            {children}
-          </div>
+          <div className="p-4">{children}</div>
         </div>
       </div>
     </div>
-  )
+  );
 }

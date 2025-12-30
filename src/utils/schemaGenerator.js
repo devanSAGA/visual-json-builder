@@ -59,6 +59,9 @@ function generatePropertySchema(prop) {
     case "number":
       addNumberValidation(propSchema, prop.validation);
       break;
+    case "boolean":
+      addBooleanValidation(propSchema, prop.validation);
+      break;
     case "array":
       addArrayValidation(propSchema, prop.validation);
       // Handle array items (recursive)
@@ -122,6 +125,25 @@ function addTextValidation(schema, validation) {
   if (validation.format) {
     schema.format = validation.format;
   }
+  if (validation.enum && validation.enum.length > 0) {
+    schema.enum = validation.enum;
+  }
+}
+
+function addBooleanValidation(schema, validation) {
+  if (!validation) return;
+
+  const allowTrue = validation.allowTrue !== false;
+  const allowFalse = validation.allowFalse !== false;
+
+  // Only add enum if one value is restricted
+  if (!allowTrue && allowFalse) {
+    schema.enum = [false];
+  } else if (allowTrue && !allowFalse) {
+    schema.enum = [true];
+  }
+  // If both are false, that's invalid - don't add enum
+  // If both are true, no restriction needed
 }
 
 function addNumberValidation(schema, validation) {
