@@ -12,7 +12,6 @@ A visual editor for defining JSON schemas and validating JSON input against them
 <img width="1907" height="901" alt="image" src="https://github.com/user-attachments/assets/e9bf4b7e-2c04-4a51-8ada-15fee39c5dab" />
 <img width="1915" height="903" alt="image" src="https://github.com/user-attachments/assets/dfe35b03-e721-453c-b75a-7fb025e8fb58" />
 
-
 ## Tech Stack
 
 - **React** — UI framework
@@ -39,9 +38,10 @@ npm run dev
 
 ## Features
 
-- Visual editor to define JSON schemas using a drag-and-drop UI
+- Visual editor to define JSON schemas using UI
 - Live preview of formatted JSON schema that stays in sync with the visual editor
 - Support for **Text**, **Number**, **Boolean**, **Object**, **Array**, and **Null** property types
+- Support for some validation rules based on the property type
 - Virtualization in the visual editor to handle large JSON schemas efficiently
 - Collapsible validator panel for validating JSON input against the schema
 - Copy to clipboard functionality for both JSON schema and input JSON
@@ -68,11 +68,25 @@ npm run dev
 - Required properties are marked with a red "Required" badge
 - Nested object properties are displayed with indentation for better visual hierarchy
 - The property creation modal is kept minimal — only the property name is required, and it's automatically focused for immediate typing. The modal closes on Enter, Escape, or clicking outside
+- Changing a property type from object to another type shows a confirmation modal warning about nested property data loss
+
+### JSON Schema Editor
+
+- Clear schema button to reset the schema, with a confirmation modal to prevent accidental data loss
 
 ### Validator
 
 - The validator panel is open by default so first-time users can discover it easily
+- The validator panel's open/close state persists across sessions via local storage
 - Validation runs after a debounce period when the user stops typing
 - Success or error messages appear at the bottom to prevent layout shifts. A "Valid" or "Invalid" badge also appears for quick interpretation
 - Error messages indicate the line number of the issue. Clicking an error highlights the faulty line briefly and moves the cursor there
 - Auto-suggestions based on the defined schema make editing easier
+
+### Pending Improvements
+
+- Persist JSON schema across sessions
+- "Fix All" button to automatically correct input JSON errors based on the schema
+- "Generate Sample" button to create sample input JSON matching the schema
+- Support for advanced Draft-07 features (`$ref` and multi-schema bundles)
+- Make UI mobile responsive
