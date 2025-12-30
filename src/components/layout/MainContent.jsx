@@ -25,7 +25,7 @@ function MainContent() {
           <div className="absolute bottom-4 right-4">
             <Button
               onClick={() => setIsValidatorOpen(true)}
-              className="shadow-lg"
+              className="shadow-lg bg-white"
               variant="outline"
             >
               <FlaskConical size={16} className="mr-2" />

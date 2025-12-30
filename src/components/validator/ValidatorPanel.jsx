@@ -122,10 +122,10 @@ export default function ValidatorPanel({ onClose }) {
   };
 
   useEffect(() => {
-    if (hasValidated && localInput) {
+    if (localInput) {
       runValidation(localInput);
     }
-    // Only re-validate when schema changes, not when other deps change
+    // Re-validate when schema changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jsonSchema]);
 

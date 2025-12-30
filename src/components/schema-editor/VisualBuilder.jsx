@@ -6,7 +6,6 @@ import PropertyRow from "./PropertyRow";
 import useSchemaStore from "../../store/useSchemaStore";
 
 const ROW_HEIGHT = 60;
-const LIST_HEIGHT = 400;
 const VIRTUALIZATION_THRESHOLD = 20;
 
 function VirtualizedList({ properties, onUpdate, onDelete, onEditFull }) {
@@ -19,11 +18,7 @@ function VirtualizedList({ properties, onUpdate, onDelete, onEditFull }) {
   });
 
   return (
-    <div
-      ref={parentRef}
-      className="mt-4 overflow-auto"
-      style={{ height: LIST_HEIGHT }}
-    >
+    <div ref={parentRef} className="mt-4 flex-1 overflow-auto pr-2">
       <div
         className="w-full relative"
         style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
@@ -91,18 +86,13 @@ export default function VisualBuilder() {
     setIsArrayItemAdd(false);
   };
 
-  // Check if any property has nested types (object or array)
-  const hasNestedTypes = schema.properties.some(
-    (p) => p.type === "object" || p.type === "array"
-  );
-
-  // Disable virtualization when there are nested types (variable row heights)
-  const shouldVirtualize =
-    !hasNestedTypes && schema.properties.length >= VIRTUALIZATION_THRESHOLD;
+  const shouldVirtualize = schema.properties.length >= VIRTUALIZATION_THRESHOLD;
 
   return (
-    <div className="p-4 h-full overflow-auto">
-      <Button onClick={() => setIsModalOpen(true)}>+ Add Property</Button>
+    <div className="p-4 pr-2 h-full flex flex-col">
+      <Button onClick={() => setIsModalOpen(true)} className="self-start">
+        + Add Property
+      </Button>
 
       {schema.properties.length === 0 ? (
         <HelperMessage className="mt-4">
@@ -116,7 +106,7 @@ export default function VisualBuilder() {
           onEditFull={openEditModal}
         />
       ) : (
-        <div className="mt-4 space-y-2">
+        <div className="mt-4 flex-1 overflow-auto space-y-2 pr-2">
           {schema.properties.map((property) => (
             <PropertyRow
               key={property.id}
