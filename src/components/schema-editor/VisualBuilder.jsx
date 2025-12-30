@@ -8,7 +8,7 @@ import useSchemaStore from "../../store/useSchemaStore";
 const ROW_HEIGHT = 60;
 const VIRTUALIZATION_THRESHOLD = 20;
 
-function VirtualizedList({ properties, onUpdate, onDelete, onEditFull }) {
+function VirtualizedList({ properties, onUpdate, onDelete, onEditFull, onAddNested }) {
   const parentRef = useRef(null);
   const rowVirtualizer = useVirtualizer({
     count: properties.length,
@@ -28,9 +28,10 @@ function VirtualizedList({ properties, onUpdate, onDelete, onEditFull }) {
           return (
             <div
               key={property.id}
+              data-index={virtualItem.index}
+              ref={rowVirtualizer.measureElement}
               className="absolute top-0 left-0 w-full"
               style={{
-                height: `${virtualItem.size}px`,
                 transform: `translateY(${virtualItem.start}px)`,
               }}
             >
@@ -40,6 +41,7 @@ function VirtualizedList({ properties, onUpdate, onDelete, onEditFull }) {
                   onUpdate={onUpdate}
                   onDelete={onDelete}
                   onEditFull={onEditFull}
+                  onAddNested={onAddNested}
                 />
               </div>
             </div>
@@ -104,6 +106,7 @@ export default function VisualBuilder() {
           onUpdate={updateProperty}
           onDelete={deleteProperty}
           onEditFull={openEditModal}
+          onAddNested={handleAddNested}
         />
       ) : (
         <div className="mt-4 flex-1 overflow-auto space-y-2 pr-2">
