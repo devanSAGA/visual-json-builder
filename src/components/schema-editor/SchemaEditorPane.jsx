@@ -1,4 +1,4 @@
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useState } from "react";
 import {
   Copy,
   Download,
@@ -6,8 +6,9 @@ import {
   Paintbrush,
   SquareChevronRight,
   Braces,
+  Trash2,
 } from "lucide-react";
-import { ResizablePanes, Button } from "../ui";
+import { ResizablePanes, Button, ConfirmDialog } from "../ui";
 import VisualBuilder from "./VisualBuilder";
 import SchemaCodeEditor from "./SchemaCodeEditor";
 import useSchemaStore from "../../store/useSchemaStore";
@@ -34,10 +35,17 @@ function EditorPane({ icon, title, actions, children, overflow = "auto" }) {
   );
 }
 
+const EMPTY_SCHEMA = {
+  title: "",
+  description: "",
+  properties: [],
+};
+
 export default function SchemaEditorPane() {
-  const { schema } = useSchemaStore();
+  const { schema, setSchema } = useSchemaStore();
   const editorRef = useRef(null);
   const { copied, copy } = useCopyToClipboard();
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const schemaJson = useMemo(() => {
     const jsonSchema = generateJsonSchema(schema);
@@ -60,6 +68,11 @@ export default function SchemaEditorPane() {
 
   const handlePrettify = () => {
     editorRef.current?.prettify();
+  };
+
+  const handleClearSchema = () => {
+    setSchema(EMPTY_SCHEMA);
+    setShowClearConfirm(false);
   };
 
   const schemaActions = (
@@ -92,6 +105,14 @@ export default function SchemaEditorPane() {
       >
         <Download size={16} />
       </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setShowClearConfirm(true)}
+        title="Clear schema"
+      >
+        <Trash2 size={16} />
+      </Button>
     </>
   );
 
@@ -116,12 +137,23 @@ export default function SchemaEditorPane() {
   );
 
   return (
-    <ResizablePanes
-      leftPane={leftPane}
-      rightPane={rightPane}
-      defaultLeftWidth={LEFT_PANE_DEFAULT_WIDTH}
-      minLeftWidth={LEFT_PANE_MIN_WIDTH}
-      maxLeftWidth={LEFT_PANE_MAX_WIDTH}
-    />
+    <>
+      <ResizablePanes
+        leftPane={leftPane}
+        rightPane={rightPane}
+        defaultLeftWidth={LEFT_PANE_DEFAULT_WIDTH}
+        minLeftWidth={LEFT_PANE_MIN_WIDTH}
+        maxLeftWidth={LEFT_PANE_MAX_WIDTH}
+      />
+      <ConfirmDialog
+        isOpen={showClearConfirm}
+        onConfirm={handleClearSchema}
+        onCancel={() => setShowClearConfirm(false)}
+        title="Clear Schema"
+        message="Are you sure you want to clear the schema? This will remove all properties and cannot be undone."
+        confirmLabel="Clear"
+        variant="danger"
+      />
+    </>
   );
 }
