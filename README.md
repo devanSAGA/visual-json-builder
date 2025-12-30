@@ -10,7 +10,7 @@ A visual editor for defining JSON schemas and validating JSON input against them
 
 <img width="1911" height="902" alt="image" src="https://github.com/user-attachments/assets/1c4ee295-286e-4396-b63d-b68e5b9c3b03" />
 <img width="1907" height="901" alt="image" src="https://github.com/user-attachments/assets/e9bf4b7e-2c04-4a51-8ada-15fee39c5dab" />
-<img width="1915" height="903" alt="image" src="https://github.com/user-attachments/assets/dfe35b03-e721-453c-b75a-7fb025e8fb58" />
+<img width="1905" height="905" alt="image" src="https://github.com/user-attachments/assets/d12674f2-2f47-4fe0-81fc-8bd0db45a311" />
 
 ## Tech Stack
 
